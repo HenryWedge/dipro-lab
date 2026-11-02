@@ -4,7 +4,6 @@ from conformance.tbr.infrastructure.splitter import EventLogSplitter
 from process_mining.datasource.datasource_interface import DataSource
 from process_mining.domain.event import Event
 
-
 class XesDataSource(DataSource):
     def __init__(self, path=None, location_key=None, start_index=0, end_index=100) -> None:
         base_splitter = EventLogSplitter(
@@ -22,3 +21,6 @@ class XesDataSource(DataSource):
         for case_id, events in self.log.iter_traces():
             for event in events:
                 yield event
+
+    def reset(self):
+        pass

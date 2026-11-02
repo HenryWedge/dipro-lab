@@ -1,5 +1,7 @@
 from conformance.tbr.application.experiment_result import ExperimentResult
+from distributed_event_factory.event_factory import EventFactory
 from process_mining.adapters.pm4py.converter import Converter
+from process_mining.datasource.distributed_event_factory_datasource import DistributedEventFactoryDataSource
 from process_mining.datasource.xes_datasource import XesDataSource
 from process_mining.domain.discovery import Discovery
 from conformance.tbr.core.conformance_aggregation_participant import ConformanceAggregationParticipant
@@ -11,9 +13,9 @@ from conformance.tbr.core.place_resolver import PlaceResolveParticipant
 from conformance.tbr.transport.wire import TBRModel
 from runtime.local.local_network import LocalNetwork
 
-
 class AlgorithmExecution:
     def run(self):
+        #datasource = DistributedEventFactoryDataSource()
         datasource = XesDataSource()
 
         network = LocalNetwork()
@@ -21,7 +23,7 @@ class AlgorithmExecution:
 
         # discovered_model = Discovery().discover_heuristics(Converter().from_event_log(event_log), dependency_threshold=0.0)
         discovered_model = Discovery().discover_inductive(Converter().from_datasource(datasource))
-
+        datasource.reset()
         petri_net = visualizer.apply(
             discovered_model.net,
             discovered_model.initial_marking,
@@ -33,6 +35,7 @@ class AlgorithmExecution:
             discovered_model,
             datasource
         ).build()
+        datasource.reset()
 
         model = TBRModel.from_assignment(
             discovered_model,
