@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from conformance.tbr.data.local_marking import LocalMarking
+from conformance.tbr.core.local_marking import LocalMarking
 from runtime.core import DistributedAlgorithm, operation
 
 

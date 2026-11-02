@@ -1,9 +1,8 @@
-from conformance.tbr.data.event_log import EventLog
-from conformance.tbr.data.net_access import PetriNetAccess
-from conformance.tbr.data.petrinet import DiscoveredPetriNet
-from conformance.tbr.model.participant import Participant
-from conformance.tbr.model.participant_service import TokenReplayParticipant
-from conformance.tbr.model.transition_lookup import TransitionLookup
+from process_mining.domain.event_log import EventLog
+from process_mining.domain.petri_net import DiscoveredPetriNet
+from conformance.tbr.infrastructure.net_access import PetriNetAccess
+from conformance.tbr.infrastructure.transition_lookup import TransitionLookup
+from conformance.tbr.core.participant import Participant
 
 
 class ParticipantAssignment:

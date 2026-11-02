@@ -1,4 +1,4 @@
-from conformance.tbr.data.petrinet import DiscoveredPetriNet
+from process_mining.domain.petri_net import DiscoveredPetriNet
 
 
 class PetriNetAccess:

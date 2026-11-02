@@ -1,7 +1,7 @@
 import random
 from pathlib import Path
 
-from .converter import Converter
+from process_mining.adapters.pm4py.converter import Converter
 
 
 class EventLogSplitter:

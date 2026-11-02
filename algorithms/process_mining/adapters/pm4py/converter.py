@@ -3,8 +3,8 @@ from pm4py.objects.log.obj import Event as Pm4PyEvent
 from pm4py.objects.log.obj import EventLog as Pm4PyEventLog
 from pm4py.objects.log.obj import Trace
 
-from .event import Event
-from .event_log import EventLog
+from process_mining.domain.event import Event
+from process_mining.domain.event_log import EventLog
 
 
 class Converter:

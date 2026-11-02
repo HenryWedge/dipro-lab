@@ -1,8 +1,8 @@
 from uuid import uuid4
 
-from conformance.tbr.model.participant_interface import TBRParticipant
-from conformance.tbr.model.token_metrics import TokenMetrics
-from conformance.tbr.model.wire import IsMarkedResult, SilentTransitionOption, TBRModel
+from conformance.tbr.core.participant_interface import TBRParticipant
+from conformance.tbr.core.token_metrics import TokenMetrics
+from conformance.tbr.transport.wire import IsMarkedResult, SilentTransitionOption, TBRModel
 from runtime.core import Network
 
 

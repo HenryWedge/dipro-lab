@@ -1,8 +1,8 @@
 from abc import abstractmethod
 
-from conformance.tbr.data.event import Event
-from conformance.tbr.model.token_metrics import TokenMetrics
-from conformance.tbr.model.wire import TBRModel, IsMarkedResult
+from process_mining.domain.event import Event
+from conformance.tbr.core.token_metrics import TokenMetrics
+from conformance.tbr.transport.wire import TBRModel, IsMarkedResult
 from runtime.core import DistributedAlgorithm, operation
 
 

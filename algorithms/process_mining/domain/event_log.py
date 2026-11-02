@@ -1,4 +1,4 @@
-from conformance.tbr.data.event import Event
+from process_mining.domain.event import Event
 
 
 class EventLog:

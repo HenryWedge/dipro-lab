@@ -1,18 +1,17 @@
 from datetime import datetime, timedelta
 
-from conformance.tbr.data.converter import Converter
-from conformance.tbr.data.event import Event
-from conformance.tbr.data.event_log import EventLog
-from conformance.tbr.data.splitter import EventLogSplitter
-from conformance.tbr.model.conformance_aggregation_participant import ConformanceAggregationParticipant
-from conformance.tbr.model.discovery import Discovery
-from conformance.tbr.model.participant_assignment import ParticipantAssignment
+from process_mining.adapters.pm4py.converter import Converter
+from process_mining.domain.discovery import Discovery
+from process_mining.domain.event import Event
+from process_mining.domain.event_log import EventLog
+from conformance.tbr.infrastructure.splitter import EventLogSplitter
+from conformance.tbr.core.conformance_aggregation_participant import ConformanceAggregationParticipant
+from conformance.tbr.assignment import ParticipantAssignment
 from pm4py.visualization.petri_net import visualizer
 
-from conformance.tbr.model.participant_service import TokenReplayParticipant
-from conformance.tbr.model.place_resolver import PlaceResolveParticipant
-from conformance.tbr.model.wire import TBRModel
-from runtime.http.http_network import HttpNetwork
+from conformance.tbr.core.participant_service import TokenReplayParticipant
+from conformance.tbr.core.place_resolver import PlaceResolveParticipant
+from conformance.tbr.transport.wire import TBRModel
 from runtime.local.local_network import LocalNetwork
 
 

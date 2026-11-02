@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from conformance.tbr.data.net_access import PetriNetAccess
+from conformance.tbr.infrastructure.net_access import PetriNetAccess
 
 
 @dataclass

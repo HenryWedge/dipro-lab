@@ -1,4 +1,4 @@
-from conformance.tbr.model.token_metrics import TokenMetrics
+from conformance.tbr.core.token_metrics import TokenMetrics
 from runtime.core import DistributedAlgorithm, Network
 
 
