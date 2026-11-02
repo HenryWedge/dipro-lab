@@ -30,12 +30,12 @@ class TBRModel:
     final_marking: dict[str, int]
 
     @classmethod
-    def from_assignment(cls, discovered_model, participants, activity_owners, place_owners):
+    def from_assignment(cls, discovered_model, participant_transitions, activity_owners, place_owners):
         access = PetriNetAccess(discovered_model)
         transitions = []
         transition_owners = {}
-        for participant_id, participant in participants.items():
-            for transition in participant.transitions:
+        for participant_id, assigned_transitions in participant_transitions.items():
+            for transition in assigned_transitions:
                 transition_id = str(transition.name)
                 transition_owners[transition_id] = participant_id
 

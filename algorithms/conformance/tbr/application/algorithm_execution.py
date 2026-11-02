@@ -85,8 +85,8 @@ class AlgorithmExecution:
         #test = test_log_silent_transition
 
         event_log = training
-        discovered_model = Discovery().discover_heuristics(Converter().from_event_log(event_log), dependency_threshold=0.0)
-        #discovered_model = DiscoveryRunner().discover_inductive(Converter().from_event_log(event_log))
+        #discovered_model = Discovery().discover_heuristics(Converter().from_event_log(event_log), dependency_threshold=0.0)
+        discovered_model = Discovery().discover_inductive(Converter().from_event_log(event_log))
 
         petri_net = visualizer.apply(
             discovered_model.net,
@@ -95,21 +95,21 @@ class AlgorithmExecution:
         )
         visualizer.view(petri_net)
 
-        participants, activity_owners, place_owners = ParticipantAssignment(
+        participant_transitions, activity_owners, place_owners = ParticipantAssignment(
             discovered_model,
             event_log,
         ).build()
 
         model = TBRModel.from_assignment(
             discovered_model,
-            participants,
+            participant_transitions,
             activity_owners,
             place_owners,
         )
 
         network = LocalNetwork()
         #network = HttpNetwork()
-        for participant_id in list(participants):
+        for participant_id in participant_transitions:
             network.add_runtime(
                 participant_id,
                 TokenReplayParticipant(participant_id)
@@ -118,7 +118,7 @@ class AlgorithmExecution:
         network.add_runtime("resolver", PlaceResolveParticipant())
         network.add_runtime("aggregator", ConformanceAggregationParticipant("aggregator"))
         network.call("resolver").install_model(model.place_owners, model.final_marking)
-        for participant_id in list(participants):
+        for participant_id in participant_transitions:
             network.call(participant_id).install_model(model.for_participant(participant_id))
 
         fitness_scores = []
