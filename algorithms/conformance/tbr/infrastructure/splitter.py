@@ -3,7 +3,6 @@ from pathlib import Path
 
 from process_mining.adapters.pm4py.converter import Converter
 
-
 class EventLogSplitter:
     def __init__(self, file_path=None, event_log=None, training_split=0.8, location_key=None, random_seed=1):
         self.converter = Converter()
