@@ -3,6 +3,7 @@ from pm4py.objects.log.obj import Event as Pm4PyEvent
 from pm4py.objects.log.obj import EventLog as Pm4PyEventLog
 from pm4py.objects.log.obj import Trace
 
+from process_mining.datasource.datasource_interface import DataSource
 from process_mining.domain.event import Event
 from process_mining.domain.event_log import EventLog
 
@@ -38,6 +39,21 @@ class Converter:
                 trace.append(self.from_event(event))
             pm4py_log.append(trace)
         return pm4py_log
+
+    def from_datasource(self, datasource: DataSource):
+        pm4py_log = Pm4PyEventLog()
+        case_id = None
+        trace = Trace()
+        for event in datasource.next_event():
+            if case_id != event.case_id:
+                pm4py_log.append(trace)
+                trace = Trace()
+                trace.attributes["concept:name"] = event.case_id
+            trace.append(self.from_event(event))
+            case_id = event.case_id
+        pm4py_log.append(trace)
+        return pm4py_log
+
 
     def from_event(self, event):
         pm4py_event = Pm4PyEvent()

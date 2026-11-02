@@ -1,11 +1,10 @@
-from process_mining.domain.event_log import EventLog
+from process_mining.datasource.datasource_interface import DataSource
 from process_mining.domain.petri_net import DiscoveredPetriNet
 from conformance.tbr.infrastructure.net_access import PetriNetAccess
 from conformance.tbr.infrastructure.transition_lookup import TransitionLookup
 
-
 class ParticipantAssignment:
-    def __init__(self, discovered_model: DiscoveredPetriNet, training_log: EventLog):
+    def __init__(self, discovered_model: DiscoveredPetriNet, training_log: DataSource):
         self.discovered_model = discovered_model
         self.training_log = training_log
         self.participant_transitions = {}
@@ -18,37 +17,32 @@ class ParticipantAssignment:
         transition_to_participants = {}
         initial_place_to_participants = {}
 
-        for _, events in self.training_log.iter_traces():
-            for event in events:
-                if event.location is None:
-                    raise ValueError(f"Event {event} hat keine Participant-Location.")
+        for event in self.training_log.next_event():
+            if event.location is None:
+                raise ValueError(f"Event {event} hat keine Participant-Location.")
 
-                transition = transition_lookup.find_transition(event.activity)
-                if transition is None:
-                    continue
+            transition = transition_lookup.find_transition(event.activity)
+            if transition is None:
+                continue
 
-                self.add_unique(
-                    self.participant_transitions.setdefault(event.location, []),
-                    transition,
-                )
-                transition_to_participants.setdefault(transition, set()).add(event.location)
-                self.activity_to_participant[event.activity] = event.location
+            self.add_unique(
+                self.participant_transitions.setdefault(event.location, []),
+                transition,
+            )
+            transition_to_participants.setdefault(transition, set()).add(event.location)
+            self.activity_to_participant[event.activity] = event.location
 
         initial_places = list(self.discovered_model.initial_marking)
 
         # The first visible event in each trace identifies the participant
         # responsible for the initial places of that trace.
-        for _, events in self.training_log.iter_traces():
-            first_visible_participant = next(
-                (
-                    event.location
-                    for event in events
-                    if transition_lookup.find_transition(event.activity) is not None
-                ),
-                None,
-            )
+        for event in self.training_log.next_event():
+            first_visible_participant = None
+            if transition_lookup.find_transition(event.activity) is not None:
+                first_visible_participant = event.location
             if first_visible_participant is None:
                 continue
+
             for place in initial_places:
                 initial_place_to_participants.setdefault(place, set()).add(
                     first_visible_participant
