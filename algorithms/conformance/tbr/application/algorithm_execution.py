@@ -1,8 +1,7 @@
 from conformance.tbr.application.experiment_result import ExperimentResult
-from distributed_event_factory.event_factory import EventFactory
 from process_mining.adapters.pm4py.converter import Converter
 from process_mining.datasource.distributed_event_factory_datasource import DistributedEventFactoryDataSource
-from process_mining.datasource.xes_datasource import XesDataSource
+from distributed_event_factory.topology.model.topology_spec import TopologyConstraint, TopologySpec
 from process_mining.domain.discovery import Discovery
 from conformance.tbr.core.conformance_aggregation_participant import ConformanceAggregationParticipant
 from conformance.tbr.assignment import ParticipantAssignment
@@ -15,15 +14,27 @@ from runtime.local.local_network import LocalNetwork
 
 class AlgorithmExecution:
     def run(self):
-        #datasource = DistributedEventFactoryDataSource()
-        datasource = XesDataSource()
+        topology_spec = TopologySpec(
+            trace_length=TopologyConstraint(target=8, tolerance=1),
+            distinct_traces=TopologyConstraint(target=200, tolerance=5),
+            initial_branching=3,
+            max_iterations=10,
+            sample_size=400,
+            payload_success_threshold=80,
+            successful_case_ratio=TopologyConstraint(target=80, tolerance=2),
+            trace_entropy=TopologyConstraint(target=0.5, tolerance=0.1),
+            average_trace_duration=TopologyConstraint(target=120, tolerance=5),
+            duration_entropy=TopologyConstraint(target=1.0, tolerance=0.05),
+            max_duration_per_transition=60,
+            payload_entropy=TopologyConstraint(target=0.3, tolerance=0.1),
+        )
+        datasource = DistributedEventFactoryDataSource(topology_spec)
 
         network = LocalNetwork()
         # network = HttpNetwork()
 
         # discovered_model = Discovery().discover_heuristics(Converter().from_event_log(event_log), dependency_threshold=0.0)
         discovered_model = Discovery().discover_inductive(Converter().from_datasource(datasource))
-        datasource.reset()
         petri_net = visualizer.apply(
             discovered_model.net,
             discovered_model.initial_marking,
@@ -35,7 +46,6 @@ class AlgorithmExecution:
             discovered_model,
             datasource
         ).build()
-        datasource.reset()
 
         model = TBRModel.from_assignment(
             discovered_model,

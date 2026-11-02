@@ -1,23 +1,30 @@
-from typing import Iterable, Iterator
+from typing import Iterator
 
 from distributed_event_factory.event_factory import EventFactory
+from distributed_event_factory.provider.data.constant_count_provider import ConstantCountProvider
+from distributed_event_factory.provider.data.increasing_case import IncreasingCaseIdProvider
+from distributed_event_factory.simulation.iterator import IteratorSimulation
+from distributed_event_factory.topology.model.topology_spec import TopologySpec
 from process_mining.datasource.datasource_interface import DataSource
 from process_mining.domain.event import Event
 
 
 class DistributedEventFactoryDataSource(DataSource):
-    def __init__(self):
+    def __init__(self, topology_spec: TopologySpec, simulation_steps=100, max_concurrent_cases=1):
         factory = EventFactory()
-        factory.add_file("/home/here/UNI/Repo/dipro-lab/def/config/simulation/iterator.yaml")
-        factory.add_directory("/home/here/UNI/Repo/dipro-lab/def/config/datasource/assemblyline")
+        factory.add_topology("topology", topology_spec)
+        factory.add_simulation(
+            "iterator",
+            IteratorSimulation(
+                simulation_steps=simulation_steps,
+                case_id_provider=IncreasingCaseIdProvider(),
+                max_concurrent_cases=ConstantCountProvider(max_concurrent_cases),
+            ),
+        )
         self.events = [self._to_event(event) for event in factory.iter_events()]
-        self.event_iterator = iter(self.events)
 
     def next_event(self) -> Iterator[Event]:
-        return self.event_iterator
-
-    def reset(self):
-        self.event_iterator = iter(self.events)
+        return iter(self.events)
 
     @staticmethod
     def _to_event(event) -> Event:

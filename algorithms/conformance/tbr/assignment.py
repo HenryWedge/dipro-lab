@@ -36,7 +36,6 @@ class ParticipantAssignment:
 
         # The first visible event in each trace identifies the participant
         # responsible for the initial places of that trace.
-        self.training_log.reset()
         for event in self.training_log.next_event():
             first_visible_participant = None
             if transition_lookup.find_transition(event.activity) is not None:
