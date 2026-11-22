@@ -1,7 +1,8 @@
 from conformance.tbr.application.experiment_result import ExperimentResult
+from conformance.tbr.application.trace_metrics_plot import plot_trace_metrics
 from process_mining.adapters.pm4py.converter import Converter
-from process_mining.datasource.distributed_event_factory_datasource import DistributedEventFactoryDataSource
 from distributed_event_factory.topology.model.topology_spec import TopologyConstraint, TopologySpec
+from process_mining.datasource.xes_datasource import XesDataSource
 from process_mining.domain.discovery import Discovery
 from conformance.tbr.core.conformance_aggregation_participant import ConformanceAggregationParticipant
 from conformance.tbr.assignment import ParticipantAssignment
@@ -28,12 +29,13 @@ class AlgorithmExecution:
             max_duration_per_transition=60,
             payload_entropy=TopologyConstraint(target=0.3, tolerance=0.1),
         )
-        datasource = DistributedEventFactoryDataSource(topology_spec)
+        #datasource = DistributedEventFactoryDataSource(topology_spec)
+        datasource = XesDataSource()
 
         network = LocalNetwork()
         # network = HttpNetwork()
 
-        # discovered_model = Discovery().discover_heuristics(Converter().from_event_log(event_log), dependency_threshold=0.0)
+        #discovered_model = Discovery().discover_heuristics(Converter().from_datasource(datasource), dependency_threshold=0.0)
         discovered_model = Discovery().discover_inductive(Converter().from_datasource(datasource))
         petri_net = visualizer.apply(
             discovered_model.net,
@@ -68,25 +70,32 @@ class AlgorithmExecution:
             network.call(participant_id).install_model(model.for_participant(participant_id))
 
         fitness_scores = []
+        trace_metrics = []
+        event_metrics = []
         current_case_id = None
         for event in datasource.next_event():
             if current_case_id is not None and event.case_id != current_case_id:
                 network.call("resolver").end_trace(current_case_id)
-                fitness_scores.append(
-                    network.call("aggregator").calculate_fitness(current_case_id)
-                )
-
+                metrics = network.call("aggregator").calculate_fitness(current_case_id)
+                fitness_scores.append(metrics)
+                trace_metrics.append((event_metrics, metrics))
+                event_metrics = []
             current_case_id = event.case_id
             if event.location not in network.get_participant_ids():
                 print("Location ", event.location, " not supported")
             else:
                 network.call(event.location).process_event(event)
+            event_metrics.append(
+                network.call("aggregator").calculate_fitness(event.case_id)
+            )
 
         if current_case_id is not None:
             network.call("resolver").end_trace(current_case_id)
-            fitness_scores.append(
-                network.call("aggregator").calculate_fitness(current_case_id)
-            )
+            metrics = network.call("aggregator").calculate_fitness(current_case_id)
+            fitness_scores.append(metrics)
+            trace_metrics.append((event_metrics, metrics))
+
+        plot_trace_metrics(trace_metrics)
 
         network_result = network.statistics.results()
         processed_events = network_result.get("process_event", 0)

@@ -23,9 +23,6 @@ class PlaceResolverInterface(DistributedAlgorithm):
     def resolve_and_consume(self, case_id: str, place_id: str) -> None:
         pass
 
-    @operation()
-    def produce_token(self, case_id: str, place_id: str) -> None:
-        pass
 
     @operation()
     def end_trace(self, case_id: str) -> None:
