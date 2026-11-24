@@ -2,7 +2,7 @@ from abc import abstractmethod
 
 from process_mining.domain.event import Event
 from conformance.tbr.core.token_metrics import TokenMetrics
-from conformance.tbr.transport.wire import TBRModel, IsMarkedResult
+from conformance.tbr.transport.wire import ParticipantTBRModel, IsMarkedResult
 from runtime.core import DistributedAlgorithm, operation
 
 
@@ -33,7 +33,7 @@ class TBRParticipant(PlaceOperations):
 
     @operation()
     @abstractmethod
-    def install_model(self, model: TBRModel) -> None:
+    def install_model(self, model: ParticipantTBRModel) -> None:
         pass
 
     @operation()

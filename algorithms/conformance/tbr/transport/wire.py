@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from uuid import uuid4
 
 from conformance.tbr.infrastructure.net_access import PetriNetAccess
 
@@ -7,8 +8,23 @@ from conformance.tbr.infrastructure.net_access import PetriNetAccess
 class TransitionSpec:
     transition_id: str
     label: str | None
+    is_silent: bool
     input_places: list[str]
     output_places: list[str]
+
+@dataclass
+class ParticipantTransitionSpec:
+    transition_id: str
+    is_silent: bool
+    input_places: list[str]
+    output_places: list[str]
+
+@dataclass
+class ParticipantTBRModel:
+    transitions: list[ParticipantTransitionSpec]
+    activity_transitions: dict[str, list[str]]
+    silent_transition_ids: list[str]
+    initial_marking: dict[str, int]
 
 @dataclass
 class SilentTransitionOption:
@@ -34,16 +50,22 @@ class TBRModel:
         access = PetriNetAccess(discovered_model)
         transitions = []
         transition_owners = {}
+        transition_ids = {
+            str(transition.name): str(uuid4())
+            for transition in discovered_model.net.transitions
+        }
         for participant_id, assigned_transitions in participant_transitions.items():
             for transition in assigned_transitions:
-                transition_id = str(transition.name)
+                transition_id = transition_ids[str(transition.name)]
                 transition_owners[transition_id] = participant_id
 
         for transition in discovered_model.net.transitions:
+            transition_id = transition_ids[str(transition.name)]
             transitions.append(
                 TransitionSpec(
-                    transition_id=str(transition.name),
+                    transition_id=transition_id,
                     label=transition.label,
+                    is_silent=transition.label is None,
                     input_places=[str(place.name) for place in access.input_places(transition)],
                     output_places=[str(place.name) for place in access.output_places(transition)],
                 )
@@ -67,7 +89,7 @@ class TBRModel:
             },
         )
 
-    def for_participant(self, participant_id):
+    def for_participant(self, participant_id) -> ParticipantTBRModel:
         owned_places = {
             place_id: owners
             for place_id, owners in self.place_owners.items()
@@ -79,15 +101,38 @@ class TBRModel:
             if self.transition_owners.get(transition.transition_id) == participant_id
             or set(transition.output_places) & set(owned_places)
         ]
-        return TBRModel(
-            transitions=relevant_transitions,
-            place_owners=owned_places,
-            activity_owners=self.activity_owners,
-            transition_owners=self.transition_owners,
+        owned_transition_ids = {
+            transition_id
+            for transition_id, owner in self.transition_owners.items()
+            if owner == participant_id
+        }
+        activity_transitions = {}
+        for transition in relevant_transitions:
+            if transition.transition_id in owned_transition_ids and transition.label is not None:
+                activity_transitions.setdefault(transition.label, []).append(
+                    transition.transition_id
+                )
+
+        return ParticipantTBRModel(
+            transitions=[
+                ParticipantTransitionSpec(
+                    transition_id=transition.transition_id,
+                    is_silent=transition.is_silent,
+                    input_places=transition.input_places,
+                    output_places=transition.output_places,
+                )
+                for transition in relevant_transitions
+            ],
+            activity_transitions=activity_transitions,
+            silent_transition_ids=[
+                transition.transition_id
+                for transition in relevant_transitions
+                if transition.transition_id in owned_transition_ids
+                and transition.is_silent
+            ],
             initial_marking={
                 place_id: amount
                 for place_id, amount in self.initial_marking.items()
                 if place_id in owned_places and owned_places[place_id][0] == participant_id
             },
-            final_marking=self.final_marking,
         )

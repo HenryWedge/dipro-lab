@@ -5,6 +5,7 @@ class ExperimentResult:
     network_statistics: dict
     processed_events: int
     average_requests_per_event: float
+    average_token_owners: float
     average_fitness: float
     silent_transitions: int
     transitions: int
@@ -16,6 +17,7 @@ class ExperimentResult:
             str(self.network_statistics),
             f"Processed Events: {self.processed_events}",
             f"Average requests per event: {self.average_requests_per_event}",
+            f"Average token owners: {self.average_token_owners:.2f}",
             f"Average fitness: {self.average_fitness}",
             f"Silent Transitions: {self.silent_transitions}",
             f"Transitions: {self.transitions}",

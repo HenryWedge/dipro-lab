@@ -30,13 +30,16 @@ class AlgorithmExecution:
             payload_entropy=TopologyConstraint(target=0.3, tolerance=0.1),
         )
         #datasource = DistributedEventFactoryDataSource(topology_spec)
-        datasource = XesDataSource()
+        datasource = XesDataSource("Sepsis.xes")
+        #datasource = XesDataSource("MainProcess.xes")
+        #datasource = XesDataSource("Road_Traffic_Fine_Management_Process.xes")
 
         network = LocalNetwork()
         # network = HttpNetwork()
 
         #discovered_model = Discovery().discover_heuristics(Converter().from_datasource(datasource), dependency_threshold=0.0)
         discovered_model = Discovery().discover_inductive(Converter().from_datasource(datasource))
+
         petri_net = visualizer.apply(
             discovered_model.net,
             discovered_model.initial_marking,
@@ -48,6 +51,11 @@ class AlgorithmExecution:
             discovered_model,
             datasource
         ).build()
+        average_token_owners = (
+            sum(len(owners) for owners in place_owners.values()) / len(place_owners)
+            if place_owners
+            else 0.0
+        )
 
         model = TBRModel.from_assignment(
             discovered_model,
@@ -109,6 +117,7 @@ class AlgorithmExecution:
             network_statistics=network_result,
             processed_events=processed_events,
             average_requests_per_event=average_requests_per_event,
+            average_token_owners=average_token_owners,
             average_fitness=(
                 sum(score.fitness() for score in fitness_scores) / len(fitness_scores)
                 if fitness_scores

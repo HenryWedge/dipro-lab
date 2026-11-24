@@ -2,7 +2,11 @@ from uuid import uuid4
 
 from conformance.tbr.core.participant_interface import TBRParticipant
 from conformance.tbr.core.token_metrics import TokenMetrics
-from conformance.tbr.transport.wire import IsMarkedResult, SilentTransitionOption, TBRModel
+from conformance.tbr.transport.wire import (
+    IsMarkedResult,
+    ParticipantTBRModel,
+    SilentTransitionOption,
+)
 from runtime.core import Network
 
 
@@ -24,19 +28,17 @@ class TokenReplayParticipant(TBRParticipant):
             self.metrics[case_id] = TokenMetrics()
         return self.metrics[case_id]
 
-    def install_model(self, model: TBRModel):
+    def install_model(self, model: ParticipantTBRModel):
         self.model = model
         self.transitions = {item.transition_id: item for item in model.transitions}
         self.silent_transition_handles = {
-            str(uuid4()): transition
-            for transition in model.transitions
-            if transition.label is None
-            and model.transition_owners.get(transition.transition_id) == self.participant_id
+            str(uuid4()): self.transitions[transition_id]
+            for transition_id in model.silent_transition_ids
         }
-        self.transitions_by_activity = {}
-        for transition in model.transitions:
-            if transition.label is not None:
-                self.transitions_by_activity.setdefault(transition.label, []).append(transition)
+        self.transitions_by_activity = {
+            activity: [self.transitions[transition_id] for transition_id in transition_ids]
+            for activity, transition_ids in model.activity_transitions.items()
+        }
 
     # TODO here. Consider all candidates
     def process_event(self, event):
@@ -91,7 +93,7 @@ class TokenReplayParticipant(TBRParticipant):
         return [
             transition
             for transition in self.transitions.values()
-            if transition.label is None and place_id in transition.output_places
+            if transition.is_silent and place_id in transition.output_places
         ]
 
     def is_place_marked(self, case_id: str, place_id: str) -> IsMarkedResult:
